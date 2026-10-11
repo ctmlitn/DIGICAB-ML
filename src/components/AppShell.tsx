@@ -43,17 +43,22 @@ export default function AppShell({ user, onLogout, activeTab, setActiveTab, chil
   const isDecisionMaker = ['ADMIN', 'MAIRE', 'SP-ML', 'DC-ML', 'SC-ML', 'CS-ML', 'CTML', 'RESPONSABLE'].includes(user.role);
 
   const menuItems = [
-    { id: 'dashboard', label: 'Tableau de bord', icon: LayoutDashboard },
-    { id: 'portfolio', label: 'Portefeuille Exécutif', icon: PieChart },
-    ...(isDecisionMaker ? [
-      { id: 'search', label: 'Recherche Stratégique', icon: Search },
-      { id: 'users', label: 'Gouvernance & Habilitations', icon: ShieldCheck }
-    ] : []),
-    { id: 'dossiers', label: 'Dossiers Cabinet', icon: Briefcase },
-    { id: 'comite', label: 'Comités', icon: Users },
-    { id: 'rapports', label: 'Rapports & Logs', icon: FileText },
+    ...(settings?.feature_dashboard !== 'false' ? [{ id: 'dashboard', label: 'Tableau de bord', icon: LayoutDashboard }] : []),
+    ...(settings?.feature_portfolio !== 'false' ? [{ id: 'portfolio', label: 'Portefeuille Exécutif', icon: PieChart }] : []),
+    ...(isDecisionMaker && settings?.feature_search !== 'false' ? [{ id: 'search', label: 'Recherche Stratégique', icon: Search }] : []),
+    ...(isDecisionMaker ? [{ id: 'users', label: 'Gouvernance & Habilitations', icon: ShieldCheck }] : []),
+    ...(settings?.feature_dossiers !== 'false' ? [{ id: 'dossiers', label: 'Dossiers Cabinet', icon: Briefcase }] : []),
+    ...(settings?.feature_committees !== 'false' ? [{ id: 'comite', label: 'Comités', icon: Users }] : []),
+    ...(settings?.feature_reports !== 'false' ? [{ id: 'rapports', label: 'Rapports & Logs', icon: FileText }] : []),
     ...(user.role === 'ADMIN' ? [{ id: 'admin', label: 'Administration', icon: Settings }] : []),
   ];
+
+  // If currently on a disabled tab, fallback to first available
+  useEffect(() => {
+    if (menuItems.length > 0 && !menuItems.some(item => item.id === activeTab)) {
+      setActiveTab(menuItems[0].id);
+    }
+  }, [settings, activeTab, menuItems, setActiveTab]);
 
   return (
     <div className="flex h-screen bg-bg overflow-hidden">

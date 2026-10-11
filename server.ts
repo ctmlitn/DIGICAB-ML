@@ -283,62 +283,85 @@ if (rmosCount.count === 0) {
   initialRmos.forEach(r => insertRmo.run(r.c, r.n, r.o));
 }
 
-// Seed App Name in parametres
-const appNameExist = db.prepare("SELECT COUNT(*) as count FROM parametres WHERE key = 'app_name'").get() as any;
-if (appNameExist.count === 0) {
-  db.prepare("INSERT INTO parametres (key, value) VALUES (?, ?)").run('app_name', 'DIGICAB ML');
-}
+// Seed App Name and Full Configurable Parameters in parametres
+const seedParam = (key: string, defaultValue: string) => {
+  const exist = db.prepare("SELECT COUNT(*) as count FROM parametres WHERE key = ?").get(key) as any;
+  if (exist.count === 0) {
+    db.prepare("INSERT INTO parametres (key, value) VALUES (?, ?)").run(key, defaultValue);
+  }
+};
 
-const entityNameExist = db.prepare("SELECT COUNT(*) as count FROM parametres WHERE key = 'mairie_name'").get() as any;
-if (entityNameExist.count === 0) {
-  db.prepare("INSERT INTO parametres (key, value) VALUES (?, ?)").run('mairie_name', 'Mairie de Libreville - République Gabonaise');
-}
+// 1. Identité Visuelle & Affichage
+seedParam('app_name', 'DIGICAB • ML');
+seedParam('mairie_name', 'Mairie de Libreville - République Gabonaise');
+seedParam('dash_subtitle', 'Tableau de Bord Stratégique');
+seedParam('port_subtitle', 'Pilotage Stratégique / Cabinet du Maire');
+seedParam('sync_label', 'Synchronisation de la Gouvernance');
+seedParam('footer_text', 'Système Intégré de Gestion et de Traçabilité • Cabinet du Maire de Libreville');
+seedParam('splash_enabled', 'true');
+seedParam('splash_duration', '3');
+seedParam('theme_style', 'gold_navy');
 
-const dashSubExist = db.prepare("SELECT COUNT(*) as count FROM parametres WHERE key = 'dash_subtitle'").get() as any;
-if (dashSubExist.count === 0) {
-  db.prepare("INSERT INTO parametres (key, value) VALUES (?, ?)").run('dash_subtitle', 'Tableau de Bord Stratégique');
-}
+// 2. Activation des Modules (Feature Flags)
+seedParam('feature_dashboard', 'true');
+seedParam('feature_portfolio', 'true');
+seedParam('feature_dossiers', 'true');
+seedParam('feature_search', 'true');
+seedParam('feature_committees', 'true');
+seedParam('feature_chat', 'true');
+seedParam('feature_reports', 'true');
+seedParam('feature_presence', 'true');
 
-const portSubExist = db.prepare("SELECT COUNT(*) as count FROM parametres WHERE key = 'port_subtitle'").get() as any;
-if (portSubExist.count === 0) {
-  db.prepare("INSERT INTO parametres (key, value) VALUES (?, ?)").run('port_subtitle', 'Pilotage Stratégique / Cabinet du Maire');
-}
+// 3. Workflow & Dossiers Métier
+seedParam('dossier_prefix', 'CAB-ML-');
+seedParam('dossier_require_company', 'false');
+seedParam('dossier_allow_delete', 'true');
+seedParam('dossier_ml_validation_required', 'true');
+seedParam('dossier_circuits', JSON.stringify([
+  'Normal SP',
+  'Normal SC',
+  'Digitalisation',
+  'Express Cabinet',
+  'Confidentiel ML',
+  'Direction Générale'
+]));
+seedParam('dossier_priorities', JSON.stringify([
+  'Faible',
+  'Normale',
+  'Urgente',
+  'Très Urgente'
+]));
+seedParam('dossier_statuses', JSON.stringify([
+  { code: 'EN_ATTENTE_SIGNATURE', label: 'En attente de signature', color: 'amber' },
+  { code: 'EN_COURS', label: 'En cours d\'instruction', color: 'blue' },
+  { code: 'TRAITE', label: 'Traité', color: 'emerald' },
+  { code: 'TRAITÉ ET VALIDÉ', label: 'Traité et Validé', color: 'green' },
+  { code: 'SUSPENDU', label: 'Suspendu', color: 'orange' },
+  { code: 'ANNULE', label: 'Annulé', color: 'rose' },
+  { code: 'TRANSFERE', label: 'Transféré', color: 'purple' },
+  { code: 'ARCHIVE', label: 'Archivé', color: 'slate' },
+  { code: 'EN_COPIL', label: 'En Comité COPIL', color: 'indigo' },
+  { code: 'EN_COTECH', label: 'En Comité COTECH', color: 'cyan' },
+  { code: 'EN_COMEV', label: 'En Comité COMEV', color: 'teal' },
+  { code: 'REJETE', label: 'Rejeté', color: 'red' },
+  { code: 'EN_CORRECTION', label: 'En correction', color: 'yellow' }
+]));
 
-const syncLabelExist = db.prepare("SELECT COUNT(*) as count FROM parametres WHERE key = 'sync_label'").get() as any;
-if (syncLabelExist.count === 0) {
-  db.prepare("INSERT INTO parametres (key, value) VALUES (?, ?)").run('sync_label', 'Synchronisation de la Gouvernance');
-}
+// 4. Horaires & SLA
+seedParam('heure_debut', '08:00');
+seedParam('heure_fin', '18:00');
+seedParam('heure_pause_debut', '12:30');
+seedParam('heure_pause_fin', '13:30');
+seedParam('work_saturday', 'false');
+seedParam('delai_moyen_traitement', '48');
+seedParam('seuil_alerte_echeance', '12');
 
-// Seed Work Hour Parameters
-const workStartExist = db.prepare("SELECT COUNT(*) as count FROM parametres WHERE key = 'heure_debut'").get() as any;
-if (workStartExist.count === 0) {
-  db.prepare("INSERT INTO parametres (key, value) VALUES (?, ?)").run('heure_debut', '08:00');
-}
-
-const workEndExist = db.prepare("SELECT COUNT(*) as count FROM parametres WHERE key = 'heure_fin'").get() as any;
-if (workEndExist.count === 0) {
-  db.prepare("INSERT INTO parametres (key, value) VALUES (?, ?)").run('heure_fin', '18:00');
-}
-
-const pauseStartExist = db.prepare("SELECT COUNT(*) as count FROM parametres WHERE key = 'heure_pause_debut'").get() as any;
-if (pauseStartExist.count === 0) {
-  db.prepare("INSERT INTO parametres (key, value) VALUES (?, ?)").run('heure_pause_debut', '12:30');
-}
-
-const pauseEndExist = db.prepare("SELECT COUNT(*) as count FROM parametres WHERE key = 'heure_pause_fin'").get() as any;
-if (pauseEndExist.count === 0) {
-  db.prepare("INSERT INTO parametres (key, value) VALUES (?, ?)").run('heure_pause_fin', '13:30');
-}
-
-const deadlineBasisExist = db.prepare("SELECT COUNT(*) as count FROM parametres WHERE key = 'delai_moyen_traitement'").get() as any;
-if (deadlineBasisExist.count === 0) {
-  db.prepare("INSERT INTO parametres (key, value) VALUES (?, ?)").run('delai_moyen_traitement', '48'); // 48 heures par défaut
-}
-
-const alertThresholdExist = db.prepare("SELECT COUNT(*) as count FROM parametres WHERE key = 'seuil_alerte_echeance'").get() as any;
-if (alertThresholdExist.count === 0) {
-  db.prepare("INSERT INTO parametres (key, value) VALUES (?, ?)").run('seuil_alerte_echeance', '12'); // 12 heures avant écheance
-}
+// 5. Sécurité & Sessions
+seedParam('session_timeout_minutes', '30');
+seedParam('session_timeout_after_hours_only', 'true');
+seedParam('chat_allow_standard_to_manager', 'false');
+seedParam('security_min_password_length', '6');
+seedParam('allow_self_registration', 'false');
 
 // Cache memoization for settings to avoid DB pressure during loops
 let cachedSettings: any = null;
@@ -392,7 +415,8 @@ function calculerDelaiOuvre(dateDebutStr: string, dateFinStr: string | null): nu
 
   while (current < finalDate) {
     const dayStr = format(current, 'yyyy-MM-dd');
-    const isWknd = isWeekend(current);
+    const allowSaturday = params['work_saturday'] === 'true';
+    const isWknd = allowSaturday ? (getDay(current) === 0) : isWeekend(current);
     const isWorkDay = (!isWknd && !holidays.has(dayStr)) || astreintes.has(dayStr);
 
     if (isWorkDay) {
@@ -565,16 +589,19 @@ app.post("/api/dossiers", (req, res) => {
   const finalCurrentHolder = current_holder || currentHolder;
 
   let finalNumber = number;
+  const currentSettings = getSettings();
+  const configuredPrefix = currentSettings.params['dossier_prefix'] || 'CAB-ML-';
+
   if (!finalNumber || finalNumber.includes('RANDOM')) {
     const year = new Date().getFullYear();
-    const lastDossier = db.prepare("SELECT number FROM dossiers WHERE number LIKE ? ORDER BY id DESC LIMIT 1").get(`CAB-ML-${year}-%`) as any;
+    const lastDossier = db.prepare("SELECT number FROM dossiers WHERE number LIKE ? ORDER BY id DESC LIMIT 1").get(`${configuredPrefix}${year}-%`) as any;
     let nextSeq = 1;
     if (lastDossier) {
       const parts = lastDossier.number.split('-');
       const lastSeq = parseInt(parts[parts.length - 1]);
       if (!isNaN(lastSeq)) nextSeq = lastSeq + 1;
     }
-    finalNumber = `CAB-ML-${year}-${String(nextSeq).padStart(4, '0')}`;
+    finalNumber = `${configuredPrefix}${year}-${String(nextSeq).padStart(4, '0')}`;
   }
 
   try {
@@ -582,14 +609,14 @@ app.post("/api/dossiers", (req, res) => {
     let finalValidationStatus = 'VALIDATED';
     let targetRmoId = finalRmoId;
 
-    // Workflow logic for standard members (ML)
-    if (userRole === 'ML') {
+    // Workflow logic for standard members (ML) if required
+    const isMlValidationRequired = currentSettings.params['dossier_ml_validation_required'] !== 'false';
+    if (userRole === 'ML' && isMlValidationRequired) {
       finalStatus = 'En attente de validation';
       finalValidationStatus = 'PENDING';
       
       // Auto-assign to responsible RMO or a default responsible
-      // Usually CAB-ML (ID 1) as safety
-      targetRmoId = 1; 
+      targetRmoId = targetRmoId || 1; 
     }
 
     const rmoInfo = db.prepare("SELECT name FROM rmo WHERE id = ?").get(targetRmoId) as any;
@@ -711,6 +738,21 @@ app.get("/api/portfolio/kpis", (req, res) => {
   });
 });
 
+app.delete("/api/dossiers/:id", (req, res) => {
+  const { id } = req.params;
+  try {
+    const dbTrans = db.transaction(() => {
+      db.prepare("DELETE FROM files WHERE dossier_id = ?").run(id);
+      db.prepare("DELETE FROM logs WHERE dossier_id = ?").run(id);
+      db.prepare("DELETE FROM dossiers WHERE id = ?").run(id);
+    });
+    dbTrans();
+    res.json({ success: true });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.get("/api/parametres", (req, res) => {
   const params = db.prepare("SELECT * FROM parametres").all();
   res.json(params);
@@ -719,9 +761,112 @@ app.get("/api/parametres", (req, res) => {
 app.put("/api/parametres/:key", (req, res) => {
   const { key } = req.params;
   const { value } = req.body;
-  db.prepare("UPDATE parametres SET value = ? WHERE key = ?").run(value, key);
+  db.prepare("INSERT OR REPLACE INTO parametres (key, value) VALUES (?, ?)").run(key, typeof value === 'string' ? value : JSON.stringify(value));
   cachedSettings = null; // Invalidate cache
   res.json({ success: true });
+});
+
+app.post("/api/parametres/bulk", (req, res) => {
+  const { parameters } = req.body; // Array of { key, value } or object { [key]: value }
+  if (!parameters) return res.status(400).json({ error: "Paramètres manquants" });
+  
+  try {
+    const upsert = db.prepare("INSERT OR REPLACE INTO parametres (key, value) VALUES (?, ?)");
+    const dbTrans = db.transaction(() => {
+      if (Array.isArray(parameters)) {
+        parameters.forEach(p => {
+          upsert.run(p.key, typeof p.value === 'string' ? p.value : JSON.stringify(p.value));
+        });
+      } else {
+        Object.entries(parameters).forEach(([k, v]) => {
+          upsert.run(k, typeof v === 'string' ? v : JSON.stringify(v));
+        });
+      }
+    });
+    dbTrans();
+    cachedSettings = null;
+    res.json({ success: true });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post("/api/parametres/reset", (req, res) => {
+  try {
+    const defaults: Record<string, string> = {
+      app_name: 'DIGICAB • ML',
+      mairie_name: 'Mairie de Libreville - République Gabonaise',
+      dash_subtitle: 'Tableau de Bord Stratégique',
+      port_subtitle: 'Pilotage Stratégique / Cabinet du Maire',
+      sync_label: 'Synchronisation de la Gouvernance',
+      footer_text: 'Système Intégré de Gestion et de Traçabilité • Cabinet du Maire de Libreville',
+      splash_enabled: 'true',
+      splash_duration: '3',
+      theme_style: 'gold_navy',
+      feature_dashboard: 'true',
+      feature_portfolio: 'true',
+      feature_dossiers: 'true',
+      feature_search: 'true',
+      feature_committees: 'true',
+      feature_chat: 'true',
+      feature_reports: 'true',
+      feature_presence: 'true',
+      dossier_prefix: 'CAB-ML-',
+      dossier_require_company: 'false',
+      dossier_allow_delete: 'true',
+      dossier_ml_validation_required: 'true',
+      dossier_circuits: JSON.stringify(['Normal SP', 'Normal SC', 'Digitalisation', 'Express Cabinet', 'Confidentiel ML', 'Direction Générale']),
+      dossier_priorities: JSON.stringify(['Faible', 'Normale', 'Urgente', 'Très Urgente']),
+      dossier_statuses: JSON.stringify([
+        { code: 'EN_ATTENTE_SIGNATURE', label: 'En attente de signature', color: 'amber' },
+        { code: 'EN_COURS', label: 'En cours d\'instruction', color: 'blue' },
+        { code: 'TRAITE', label: 'Traité', color: 'emerald' },
+        { code: 'TRAITÉ ET VALIDÉ', label: 'Traité et Validé', color: 'green' },
+        { code: 'SUSPENDU', label: 'Suspendu', color: 'orange' },
+        { code: 'ANNULE', label: 'Annulé', color: 'rose' },
+        { code: 'TRANSFERE', label: 'Transféré', color: 'purple' },
+        { code: 'ARCHIVE', label: 'Archivé', color: 'slate' },
+        { code: 'EN_COPIL', label: 'En Comité COPIL', color: 'indigo' },
+        { code: 'EN_COTECH', label: 'En Comité COTECH', color: 'cyan' },
+        { code: 'EN_COMEV', label: 'En Comité COMEV', color: 'teal' },
+        { code: 'REJETE', label: 'Rejeté', color: 'red' },
+        { code: 'EN_CORRECTION', label: 'En correction', color: 'yellow' }
+      ]),
+      heure_debut: '08:00',
+      heure_fin: '18:00',
+      heure_pause_debut: '12:30',
+      heure_pause_fin: '13:30',
+      work_saturday: 'false',
+      delai_moyen_traitement: '48',
+      seuil_alerte_echeance: '12',
+      session_timeout_minutes: '30',
+      session_timeout_after_hours_only: 'true',
+      chat_allow_standard_to_manager: 'false',
+      security_min_password_length: '6',
+      allow_self_registration: 'false'
+    };
+
+    const upsert = db.prepare("INSERT OR REPLACE INTO parametres (key, value) VALUES (?, ?)");
+    const dbTrans = db.transaction(() => {
+      Object.entries(defaults).forEach(([k, v]) => {
+        upsert.run(k, v);
+      });
+    });
+    dbTrans();
+    cachedSettings = null;
+    res.json({ success: true, message: "Paramètres réinitialisés aux valeurs standards." });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete("/api/logs", (req, res) => {
+  try {
+    db.prepare("DELETE FROM logs").run();
+    res.json({ success: true });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 app.get("/api/jours_feries", (req, res) => {
@@ -840,9 +985,10 @@ app.post("/api/chat/sessions", (req, res) => {
   // Règles : 
   // 1. Responsable peut vers tout le monde
   // 2. Standard vers Standard OK
-  // 3. Standard vers Responsable INTERDIT
-  if (creator.role === 'STANDARD' && target.role === 'RESPONSABLE') {
-    return res.status(403).json({ error: "Les utilisateurs standards ne peuvent pas initier de session vers un responsable." });
+  // 3. Standard vers Responsable selon configuration
+  const allowStdToMgr = getSettings().params['chat_allow_standard_to_manager'] === 'true';
+  if (!allowStdToMgr && creator.role === 'STANDARD' && target.role === 'RESPONSABLE') {
+    return res.status(403).json({ error: "Les utilisateurs standards ne peuvent pas initier de session vers un responsable (Paramètre de sécurité actif)." });
   }
   
   const existing = db.prepare("SELECT * FROM chat_sessions WHERE ((manager_id = ? AND participant_id = ?) OR (manager_id = ? AND participant_id = ?)) AND status = 'OPEN'").get(managerId, participantId, participantId, managerId);

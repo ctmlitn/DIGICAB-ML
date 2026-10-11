@@ -13,9 +13,10 @@ import DossierModal from './DossierModal';
 
 interface DossierManagementProps {
   user: User;
+  settings?: any;
 }
 
-export default function DossierManagement({ user }: DossierManagementProps) {
+export default function DossierManagement({ user, settings }: DossierManagementProps) {
   const [dossiers, setDossiers] = useState<Dossier[]>([]);
   const [rmos, setRmos] = useState<RMO[]>([]);
   const [loading, setLoading] = useState(true);
@@ -281,6 +282,7 @@ export default function DossierManagement({ user }: DossierManagementProps) {
             isOpen={showCreateModal}
             user={user}
             rmos={rmos}
+            settings={settings}
             onClose={() => setShowCreateModal(false)}
             onSuccess={() => {
               setShowCreateModal(false);

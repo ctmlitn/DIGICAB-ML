@@ -11,18 +11,38 @@ interface DossierModalProps {
   user: User;
   rmos: RMO[];
   dossier?: Dossier | null;
+  settings?: any;
 }
 
-export default function DossierModal({ isOpen, onClose, onSuccess, user, rmos, dossier }: DossierModalProps) {
+export default function DossierModal({ isOpen, onClose, onSuccess, user, rmos, dossier, settings }: DossierModalProps) {
   const [allUsers, setAllUsers] = useState<User[]>([]);
+
+  // Dynamically load available priorities and circuits from settings
+  let availablePriorities = ['Basse', 'Normale', 'Urgente', 'Très Urgente'];
+  let availableCircuits = ['Normal SP', 'Normal SC', 'Digitalisation', 'Express Cabinet', 'Confidentiel ML'];
+
+  if (settings?.dossier_priorities) {
+    try {
+      const parsed = JSON.parse(settings.dossier_priorities);
+      if (Array.isArray(parsed) && parsed.length > 0) availablePriorities = parsed;
+    } catch (e) {}
+  }
+
+  if (settings?.dossier_circuits) {
+    try {
+      const parsed = JSON.parse(settings.dossier_circuits);
+      if (Array.isArray(parsed) && parsed.length > 0) availableCircuits = parsed;
+    } catch (e) {}
+  }
+
   const [formData, setFormData] = useState<Partial<Dossier>>({
     number: '',
     object: '',
     entreprise: '',
     rmo_id: undefined,
     status: 'EN_ATTENTE_SIGNATURE' as any,
-    priority: 'Normale',
-    circuit: 'Normal SP',
+    priority: (availablePriorities[1] || availablePriorities[0] || 'Normale') as any,
+    circuit: (availableCircuits[0] || 'Normal SP') as any,
     date_instruction: new Date().toISOString(),
     current_holder: user.name,
   });
@@ -162,9 +182,12 @@ export default function DossierModal({ isOpen, onClose, onSuccess, user, rmos, d
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <label className="text-[0.65rem] font-bold text-text-muted uppercase tracking-wider ml-1">Entreprise / Entité Concernée</label>
+                <label className="text-[0.65rem] font-bold text-text-muted uppercase tracking-wider ml-1">
+                  Entreprise / Entité Concernée {settings?.dossier_require_company === 'true' && <span className="text-rose-500">*</span>}
+                </label>
                 <input 
                   type="text" 
+                  required={settings?.dossier_require_company === 'true'}
                   value={formData.entreprise || ''}
                   onChange={(e) => setFormData({...formData, entreprise: e.target.value})}
                   className="w-full px-4 py-2 bg-bg border border-border-theme rounded focus:outline-none focus:border-navy transition-all font-bold text-navy"
@@ -213,14 +236,14 @@ export default function DossierModal({ isOpen, onClose, onSuccess, user, rmos, d
               <div className="space-y-3">
                 <div className="space-y-1.5">
                   <label className="text-[0.65rem] font-bold text-text-muted uppercase tracking-wider ml-1">Niveau de Priorité</label>
-                  <div className="flex gap-2">
-                    {['Basse', 'Normale', 'Urgente'].map(p => (
+                  <div className="flex flex-wrap gap-1.5">
+                    {availablePriorities.map(p => (
                       <button
                         key={p}
                         type="button"
                         disabled={isML}
                         onClick={() => setFormData({...formData, priority: p as any})}
-                        className={`flex-1 py-1.5 rounded text-[0.65rem] font-bold uppercase transition-all border ${
+                        className={`flex-1 min-w-[70px] py-1.5 rounded text-[0.65rem] font-bold uppercase transition-all border ${
                           formData.priority === p 
                             ? 'bg-navy text-white border-navy shadow-md' 
                             : 'bg-white text-text-muted border-border-theme hover:bg-bg'
@@ -239,11 +262,9 @@ export default function DossierModal({ isOpen, onClose, onSuccess, user, rmos, d
                     onChange={(e) => setFormData({...formData, circuit: e.target.value as any})}
                     className="w-full px-4 py-2 bg-bg border border-border-theme rounded focus:outline-none text-sm font-bold text-navy"
                   >
-                    <option value="Normal SP">Cabinet (Normal SP)</option>
-                    <option value="Normal SC">Secrétariat Central (SC)</option>
-                    <option value="Conseiller">Conseiller Technique</option>
-                    <option value="Instruction Directe">Instruction Directe PMA</option>
-                    <option value="Digitalisation">Processus Digitalisation</option>
+                    {availableCircuits.map(c => (
+                      <option key={c} value={c}>{c}</option>
+                    ))}
                   </select>
                   <div className="flex flex-wrap gap-1 mt-2">
                     {allUsers.filter(u => {

@@ -1,0 +1,146 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 240" width="100%" height="100%">
+  <defs>
+    <linearGradient id="goldLions" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stopColor="#F59E0B" />
+      <stop offset="50%" stopColor="#FBBF24" />
+      <stop offset="100%" stopColor="#D97706" />
+    </linearGradient>
+    <linearGradient id="brickGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stopColor="#FBBF24" />
+      <stop offset="100%" stopColor="#D97706" />
+    </linearGradient>
+    <linearGradient id="sunGrad" x1="0%" y1="100%" x2="0%" y2="0%">
+      <stop offset="0%" stopColor="#F59E0B" />
+      <stop offset="100%" stopColor="#FDE047" />
+    </linearGradient>
+    <clipPath id="shieldShape">
+      <path d="M100 70 L200 70 L200 135 C200 185 150 205 150 205 C150 205 100 185 100 135 Z" />
+    </clipPath>
+  </defs>
+
+  <!-- Mural Crown (Couronne murale crénelée) -->
+  <g transform="translate(95, 30)">
+    <!-- Row 1 -->
+    <rect x="20" y="0" width="16" height="10" fill="url(#brickGrad)" stroke="#B45309" stroke-width="1.5" />
+    <rect x="42" y="0" width="16" height="10" fill="url(#brickGrad)" stroke="#B45309" stroke-width="1.5" />
+    <rect x="64" y="0" width="16" height="10" fill="url(#brickGrad)" stroke="#B45309" stroke-width="1.5" />
+    <rect x="86" y="0" width="16" height="10" fill="url(#brickGrad)" stroke="#B45309" stroke-width="1.5" />
+    <!-- Row 2 -->
+    <rect x="10" y="10" width="18" height="10" fill="url(#brickGrad)" stroke="#B45309" stroke-width="1.5" />
+    <rect x="30" y="10" width="18" height="10" fill="url(#brickGrad)" stroke="#B45309" stroke-width="1.5" />
+    <rect x="50" y="10" width="18" height="10" fill="url(#brickGrad)" stroke="#B45309" stroke-width="1.5" />
+    <rect x="70" y="10" width="18" height="10" fill="url(#brickGrad)" stroke="#B45309" stroke-width="1.5" />
+    <rect x="90" y="10" width="18" height="10" fill="url(#brickGrad)" stroke="#B45309" stroke-width="1.5" />
+    <!-- Base Row -->
+    <rect x="5" y="20" width="100" height="12" fill="url(#brickGrad)" stroke="#B45309" stroke-width="1.5" rx="1" />
+  </g>
+
+  <!-- Left Gabonese Flag & Lance -->
+  <g transform="translate(45, 10)">
+    <line x1="45" y1="10" x2="60" y2="120" stroke="#78350F" stroke-width="3" stroke-linecap="round" />
+    <polygon points="45,8 43,15 47,15" fill="#F59E0B" />
+    <!-- Flag: Green Yellow Blue -->
+    <rect x="15" y="15" width="30" height="7" fill="#15803D" stroke="#000" stroke-width="0.5" />
+    <rect x="15" y="22" width="30" height="7" fill="#FACC15" stroke="#000" stroke-width="0.5" />
+    <rect x="15" y="29" width="30" height="7" fill="#1D4ED8" stroke="#000" stroke-width="0.5" />
+  </g>
+
+  <!-- Right Gabonese Flag & Lance -->
+  <g transform="translate(195, 10)">
+    <line x1="15" y1="10" x2="0" y2="120" stroke="#78350F" stroke-width="3" stroke-linecap="round" />
+    <polygon points="15,8 13,15 17,15" fill="#F59E0B" />
+    <!-- Flag: Green Yellow Blue -->
+    <rect x="15" y="15" width="30" height="7" fill="#15803D" stroke="#000" stroke-width="0.5" />
+    <rect x="15" y="22" width="30" height="7" fill="#FACC15" stroke="#000" stroke-width="0.5" />
+    <rect x="15" y="29" width="30" height="7" fill="#1D4ED8" stroke="#000" stroke-width="0.5" />
+  </g>
+
+  <!-- Left Golden Lion-Marin (Tenant gauche) -->
+  <g id="left-lion" fill="url(#goldLions)" stroke="#92400E" stroke-width="1.5">
+    <!-- Mane & Head -->
+    <circle cx="55" cy="85" r="14" />
+    <path d="M48 76 C40 70 38 90 45 92" />
+    <path d="M42 85 C35 88 40 100 48 97" />
+    <!-- Open Mouth & Red Tongue -->
+    <polygon points="62,83 67,81 65,86" fill="#DC2626" stroke="#991B1B" stroke-width="0.5" />
+    <!-- Eye -->
+    <circle cx="58" cy="80" r="2" fill="#000" stroke="none" />
+    <!-- Chest / Torso -->
+    <path d="M52 95 C45 110 50 140 65 155 C72 165 65 185 50 200 C40 210 30 200 25 185 C20 170 30 160 35 150 C40 140 42 120 48 100 Z" />
+    <!-- Left Forepaw holding shield -->
+    <path d="M62 105 C75 100 85 95 98 100 C92 106 82 110 70 115 Z" />
+    <!-- Lower Claw -->
+    <path d="M68 130 C80 128 92 135 99 142 C90 145 80 140 68 138 Z" />
+    <!-- Fish Tail Fin -->
+    <path d="M42 205 C25 215 15 210 18 190 C25 195 32 195 38 195 Z" fill="#D97706" />
+    <path d="M52 208 C45 225 55 230 68 220 C60 215 56 210 52 208 Z" fill="#D97706" />
+  </g>
+
+  <!-- Right Golden Lion-Marin (Tenant droit - symétrique) -->
+  <g id="right-lion" transform="translate(300, 0) scale(-1, 1)" fill="url(#goldLions)" stroke="#92400E" stroke-width="1.5">
+    <!-- Mane & Head -->
+    <circle cx="55" cy="85" r="14" />
+    <path d="M48 76 C40 70 38 90 45 92" />
+    <path d="M42 85 C35 88 40 100 48 97" />
+    <!-- Open Mouth & Red Tongue -->
+    <polygon points="62,83 67,81 65,86" fill="#DC2626" stroke="#991B1B" stroke-width="0.5" />
+    <!-- Eye -->
+    <circle cx="58" cy="80" r="2" fill="#000" stroke="none" />
+    <!-- Chest / Torso -->
+    <path d="M52 95 C45 110 50 140 65 155 C72 165 65 185 50 200 C40 210 30 200 25 185 C20 170 30 160 35 150 C40 140 42 120 48 100 Z" />
+    <!-- Left Forepaw holding shield -->
+    <path d="M62 105 C75 100 85 95 98 100 C92 106 82 110 70 115 Z" />
+    <!-- Lower Claw -->
+    <path d="M68 130 C80 128 92 135 99 142 C90 145 80 140 68 138 Z" />
+    <!-- Fish Tail Fin -->
+    <path d="M42 205 C25 215 15 210 18 190 C25 195 32 195 38 195 Z" fill="#D97706" />
+    <path d="M52 208 C45 225 55 230 68 220 C60 215 56 210 52 208 Z" fill="#D97706" />
+  </g>
+
+  <!-- CENTRAL ESCUTCHEON (Écu héraldique de Libreville) -->
+  <g clip-path="url(#shieldShape)">
+    <!-- Top Black Band (Chef de sable) -->
+    <rect x="100" y="70" width="100" height="38" fill="#0F172A" />
+    
+    <!-- Broken Chains & Ship (La chaîne brisée et le navire libérateur) -->
+    <!-- Broken Chain Links -->
+    <ellipse cx="125" cy="88" rx="8" ry="4.5" fill="none" stroke="#E2E8F0" stroke-width="2" />
+    <line x1="133" y1="88" x2="140" y2="85" stroke="#E2E8F0" stroke-width="2.5" />
+    <ellipse cx="148" cy="85" rx="7" ry="4" fill="none" stroke="#E2E8F0" stroke-width="2" />
+    <line x1="155" y1="85" x2="162" y2="90" stroke="#CBD5E1" stroke-width="2" stroke-dasharray="2,2" />
+    <ellipse cx="172" cy="90" rx="8" ry="4.5" fill="none" stroke="#E2E8F0" stroke-width="2" />
+
+    <!-- Middle Azure Field (Champ d'azur) with Radiant Rising Sun -->
+    <rect x="100" y="108" width="100" height="52" fill="#1E3A8A" />
+    
+    <!-- Sun & Rays (Soleil d'or rayonnant) -->
+    <circle cx="150" cy="155" r="24" fill="url(#sunGrad)" />
+    <!-- Rays -->
+    <line x1="150" y1="125" x2="150" y2="114" stroke="#FDE047" stroke-width="2.5" />
+    <line x1="136" y1="132" x2="128" y2="122" stroke="#FDE047" stroke-width="2.5" />
+    <line x1="164" y1="132" x2="172" y2="122" stroke="#FDE047" stroke-width="2.5" />
+    <line x1="125" y1="145" x2="115" y2="140" stroke="#FDE047" stroke-width="2.5" />
+    <line x1="175" y1="145" x2="185" y2="140" stroke="#FDE047" stroke-width="2.5" />
+
+    <!-- Base Field: Green & Silver Waves (Fascé-ondé de sinople et d'argent) -->
+    <rect x="100" y="155" width="100" height="50" fill="#047857" />
+    <path d="M100 165 Q125 160 150 165 T200 165" stroke="#FFFFFF" stroke-width="2" fill="none" opacity="0.8" />
+    <path d="M100 175 Q125 170 150 175 T200 175" stroke="#FFFFFF" stroke-width="2" fill="none" opacity="0.8" />
+    <path d="M100 185 Q125 180 150 185 T200 185" stroke="#FFFFFF" stroke-width="2" fill="none" opacity="0.8" />
+    <path d="M100 195 Q125 190 150 195 T200 195" stroke="#FFFFFF" stroke-width="2" fill="none" opacity="0.8" />
+  </g>
+
+  <!-- Escutcheon Outer Border -->
+  <path d="M100 70 L200 70 L200 135 C200 185 150 205 150 205 C150 205 100 185 100 135 Z" fill="none" stroke="#D4AF37" stroke-width="4" />
+  <path d="M100 70 L200 70 L200 135 C200 185 150 205 150 205 C150 205 100 185 100 135 Z" fill="none" stroke="#1E293B" stroke-width="1.5" />
+
+  <!-- Lower Banner with "LIBREVILLE" (Banderole officielle) -->
+  <g transform="translate(150, 218)">
+    <path d="M-80 -6 Q0 8 80 -6 L75 14 Q0 26 -75 14 Z" fill="#F8FAFC" stroke="#64748B" stroke-width="1.5" />
+    <!-- Ribbon ends -->
+    <polygon points="-80,-6 -95,-12 -90,4 -75,14" fill="#E2E8F0" stroke="#64748B" stroke-width="1" />
+    <polygon points="80,-6 95,-12 90,4 75,14" fill="#E2E8F0" stroke="#64748B" stroke-width="1" />
+    <!-- Text -->
+    <text x="0" y="8" font-family="'Times New Roman', serif" font-size="11" font-weight="900" letter-spacing="3" text-anchor="middle" fill="#0F172A">LIBREVILLE</text>
+  </g>
+</svg>

@@ -39,23 +39,32 @@ export default function App() {
   };
 
   useEffect(() => {
-    loadSettings();
+    loadSettings().then(() => {
+      const savedUser = localStorage.getItem('digicab_user');
+      if (savedUser) {
+        setUser(JSON.parse(savedUser));
+      }
+      setInitialized(true);
+    });
+    
     window.addEventListener('settings-updated', loadSettings);
-    
-    const savedUser = localStorage.getItem('digicab_user');
-    if (savedUser) {
-      setUser(JSON.parse(savedUser));
-    }
-    setInitialized(true);
-    
-    // Timer for splash screen
-    const timer = setTimeout(() => {
-      setShowSplash(false);
-    }, 4000);
-    return () => clearTimeout(timer);
   }, []);
 
-  // Activity Monitor & Auto-Logout
+  // Timer for splash screen based on settings
+  useEffect(() => {
+    if (!initialized) return;
+    if (settings.splash_enabled === 'false') {
+      setShowSplash(false);
+      return;
+    }
+    const duration = (parseInt(settings.splash_duration || '3', 10) || 3) * 1000;
+    const timer = setTimeout(() => {
+      setShowSplash(false);
+    }, duration);
+    return () => clearTimeout(timer);
+  }, [initialized, settings.splash_enabled, settings.splash_duration]);
+
+  // Activity Monitor & Auto-Logout based on Admin settings
   useEffect(() => {
     if (!user) return;
 
@@ -81,12 +90,22 @@ export default function App() {
       const minutes = now.getMinutes();
       const idleTime = Date.now() - lastActivityRef.current;
 
-      // Rule: After 16:30, 30 minutes of inactivity => logout
-      const isAfterWork = (hours > 16) || (hours === 16 && minutes >= 30);
-      const isOverIdle = idleTime > 30 * 60 * 1000; // 30 minutes
+      const timeoutMinutes = parseInt(settings.session_timeout_minutes || '30', 10) || 30;
+      const afterHoursOnly = settings.session_timeout_after_hours_only !== 'false';
 
-      if (isAfterWork && isOverIdle) {
-        handleLogout();
+      // Work hours check
+      const [hEnd, mEnd] = (settings.heure_fin || '18:00').split(':').map(Number);
+      const isAfterWork = (hours > hEnd) || (hours === hEnd && minutes >= (mEnd || 0));
+      const isOverIdle = idleTime > (timeoutMinutes * 60 * 1000);
+
+      if (afterHoursOnly) {
+        if (isAfterWork && isOverIdle) {
+          handleLogout();
+        }
+      } else {
+        if (isOverIdle) {
+          handleLogout();
+        }
       }
     }, 30000); // Check every 30 seconds
 
@@ -96,7 +115,7 @@ export default function App() {
       window.removeEventListener('click', handleActivity);
       clearInterval(checkTimeout);
     };
-  }, [user]);
+  }, [user, settings]);
 
   const handleLogin = (userData: User) => {
     setUser(userData);
@@ -185,7 +204,7 @@ export default function App() {
 
         {activeTab === 'users' && isDecisionMaker && <UserManagementView currentUser={user} />}
 
-        {activeTab === 'dossiers' && <DossierManagement user={user} />}
+        {activeTab === 'dossiers' && <DossierManagement user={user} settings={settings} />}
 
         {activeTab === 'comite' && <CommitteesView />}
 
@@ -208,7 +227,7 @@ export default function App() {
           <AdministrationView currentUser={user} />
         )}
 
-        <ChatSystem currentUser={user} />
+        {settings.feature_chat !== 'false' && <ChatSystem currentUser={user} />}
       </div>
     </AppShell>
   );

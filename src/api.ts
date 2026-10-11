@@ -77,6 +77,7 @@ export const api = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data)
     }).then(handleResponse),
+  deleteDossier: (id: number) => fetch(`${API_BASE}/dossiers/${id}`, { method: 'DELETE' }).then(handleResponse),
 
   advancedSearch: (filters: any): Promise<Dossier[]> => 
     fetch(`${API_BASE}/search/advanced`, {
@@ -106,6 +107,21 @@ export const api = {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ value })
+    }).then(handleResponse),
+  saveBulkParameters: (parameters: Record<string, any>) =>
+    fetch(`${API_BASE}/parametres/bulk`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ parameters })
+    }).then(handleResponse),
+  resetParameters: () =>
+    fetch(`${API_BASE}/parametres/reset`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' }
+    }).then(handleResponse),
+  clearLogs: () =>
+    fetch(`${API_BASE}/logs`, {
+      method: 'DELETE'
     }).then(handleResponse),
   
   getHolidays: (): Promise<Holiday[]> => fetch(`${API_BASE}/jours_feries`).then(handleResponse).then(data => Array.isArray(data) ? data : []),

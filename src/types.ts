@@ -106,6 +106,72 @@ export interface PortfolioKPIs {
   rmoStats: RMOStat[];
 }
 
+export interface CustomStatusConfig {
+  code: string;
+  label: string;
+  color: string;
+}
+
+export interface AppSettings {
+  // 1. Identité Visuelle & Affichage
+  app_name?: string;
+  mairie_name?: string;
+  dash_subtitle?: string;
+  port_subtitle?: string;
+  sync_label?: string;
+  footer_text?: string;
+  splash_enabled?: string;
+  splash_duration?: string;
+  theme_style?: string;
+
+  // 2. Feature Flags
+  feature_dashboard?: string;
+  feature_portfolio?: string;
+  feature_dossiers?: string;
+  feature_search?: string;
+  feature_committees?: string;
+  feature_chat?: string;
+  feature_reports?: string;
+  feature_presence?: string;
+
+  // 3. Workflow & Dossiers
+  dossier_prefix?: string;
+  dossier_require_company?: string;
+  dossier_allow_delete?: string;
+  dossier_ml_validation_required?: string;
+  dossier_circuits?: string; // JSON string array
+  dossier_priorities?: string; // JSON string array
+  dossier_statuses?: string; // JSON string array of CustomStatusConfig
+
+  // 4. Horaires & SLA
+  heure_debut?: string;
+  heure_fin?: string;
+  heure_pause_debut?: string;
+  heure_pause_fin?: string;
+  work_saturday?: string;
+  delai_moyen_traitement?: string;
+  seuil_alerte_echeance?: string;
+
+  // 5. Sécurité & Sessions
+  session_timeout_minutes?: string;
+  session_timeout_after_hours_only?: string;
+  chat_allow_standard_to_manager?: string;
+  security_min_password_length?: string;
+  allow_self_registration?: string;
+
+  [key: string]: any;
+}
+
+export interface AuditLog {
+  id: number;
+  dossier_id?: number;
+  user_id?: number;
+  user_name?: string;
+  action: string;
+  details?: string;
+  timestamp: string;
+}
+
 export interface Parameter {
   id: number;
   key: string;
