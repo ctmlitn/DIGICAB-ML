@@ -1,12 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   Settings, Clock, Calendar, Users, Key, Database, 
   Shield, Activity, Save, Plus, Trash2, Layout,
   Layers, Lock, AlertTriangle, Edit2, X, ToggleLeft, ToggleRight,
   CheckCircle2, RefreshCw, Sliders, Palette, Zap, FileSpreadsheet,
-  MessageSquare, Briefcase, Eye, ShieldAlert, Sparkles, Download
+  MessageSquare, Briefcase, Eye, ShieldAlert, Sparkles, Download,
+  Upload, Image as ImageIcon, Link as LinkIcon, RotateCcw, Check, ShieldCheck, ArrowRight
 } from 'lucide-react';
+import LogoMairie from './LogoMairie';
 import { api } from '../api';
 import { Parameter, Holiday, RMO, User, CustomStatusConfig } from '../types';
 import UserManagementView from './UserManagementView';
@@ -22,6 +24,14 @@ export default function AdministrationView({ currentUser }: { currentUser: User 
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
+
+  // Logo management state
+  const [logoMode, setLogoMode] = useState<'upload' | 'presets' | 'url'>('upload');
+  const [logoInputUrl, setLogoInputUrl] = useState('');
+  const [logoSaving, setLogoSaving] = useState(false);
+  const [logoSuccessMsg, setLogoSuccessMsg] = useState<string | null>(null);
+  const [isDraggingLogo, setIsDraggingLogo] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Form states for general & modules
   const [paramsMap, setParamsMap] = useState<Record<string, string>>({
@@ -161,6 +171,11 @@ export default function AdministrationView({ currentUser }: { currentUser: User 
       };
 
       await api.saveBulkParameters(payload);
+      if (paramsMap.custom_logo) {
+        localStorage.setItem('digicab_custom_logo', paramsMap.custom_logo);
+      } else {
+        localStorage.removeItem('digicab_custom_logo');
+      }
       setSaveSuccess(true);
       setTimeout(() => setSaveSuccess(false), 3000);
       window.dispatchEvent(new CustomEvent('settings-updated'));
@@ -175,6 +190,7 @@ export default function AdministrationView({ currentUser }: { currentUser: User 
     if (!window.confirm("Êtes-vous certain de vouloir réinitialiser l'ensemble des paramètres aux valeurs officielles par défaut ?")) return;
     setSaving(true);
     try {
+      localStorage.removeItem('digicab_custom_logo');
       await api.resetParameters();
       await loadAllData();
       setSaveSuccess(true);
@@ -185,6 +201,56 @@ export default function AdministrationView({ currentUser }: { currentUser: User 
     } finally {
       setSaving(false);
     }
+  };
+
+  // Specific Logo Actions
+  const handleLogoFile = (file: File) => {
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      alert("Veuillez sélectionner un fichier image valide (PNG, JPG, SVG, WebP).");
+      return;
+    }
+    if (file.size > 15 * 1024 * 1024) {
+      alert("Le fichier est trop volumineux. La taille maximale recommandée est de 15 Mo.");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const dataUrl = e.target?.result as string;
+      if (dataUrl) {
+        setParamsMap(prev => ({ ...prev, custom_logo: dataUrl }));
+        setLogoSuccessMsg("Fichier image chargé ! Cliquez sur « Appliquer ce Logo » pour sauvegarder.");
+        setTimeout(() => setLogoSuccessMsg(null), 4000);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleSaveLogoDirect = async (logoVal?: string) => {
+    setLogoSaving(true);
+    const targetVal = logoVal !== undefined ? logoVal : (paramsMap.custom_logo || '');
+    try {
+      await api.updateParameter('custom_logo', targetVal);
+      if (targetVal) {
+        localStorage.setItem('digicab_custom_logo', targetVal);
+      } else {
+        localStorage.removeItem('digicab_custom_logo');
+      }
+      setParamsMap(prev => ({ ...prev, custom_logo: targetVal }));
+      window.dispatchEvent(new CustomEvent('settings-updated'));
+      setLogoSuccessMsg(targetVal ? "Logo institutionnel enregistré avec succès !" : "Blason officiel vectoriel rétabli avec succès !");
+      setTimeout(() => setLogoSuccessMsg(null), 3500);
+    } catch (err: any) {
+      alert("Erreur lors de l'enregistrement du logo : " + (err.message || err));
+    } finally {
+      setLogoSaving(false);
+    }
+  };
+
+  const handleRestoreOfficialLogo = async () => {
+    if (!window.confirm("Rétablir le blason officiel vectoriel de la Mairie de Libreville (avec lions-marins d'or et drapeaux tricolores) ?")) return;
+    await handleSaveLogoDirect('');
   };
 
   const toggleParam = (key: string) => {
@@ -398,7 +464,360 @@ export default function AdministrationView({ currentUser }: { currentUser: User 
       <div className="flex-1 overflow-y-auto pr-1">
         {/* 1. IDENTITÉ VISUELLE & AFFICHAGE */}
         {activeSubTab === 'general' && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="space-y-6">
+            {/* MODULE GESTION & CHANGEMENT DU LOGO */}
+            <div className="bg-white p-6 rounded-2xl shadow-sm border-2 border-gold/40 space-y-6">
+              {/* Header with Title and Current Status */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+                <div className="flex items-center gap-3">
+                  <div className="p-2.5 bg-navy text-gold rounded-xl shadow-md">
+                    <ImageIcon size={22} />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-serif font-black text-navy text-lg uppercase tracking-tight">Logo & Armoiries de l'Application</h3>
+                      <span className="bg-gold/20 text-navy font-bold text-[0.65rem] uppercase px-2 py-0.5 rounded-md border border-gold/30">
+                        OFFICIEL
+                      </span>
+                    </div>
+                    <p className="text-[0.65rem] font-bold text-text-muted uppercase tracking-wider mt-0.5">
+                      Personnalisez le blason et le logo visibles sur la barre latérale, le splash, la connexion et les filigranes
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  {!paramsMap.custom_logo ? (
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-black bg-amber-50 text-amber-900 border border-amber-200">
+                      <ShieldCheck size={14} className="text-amber-600" />
+                      Blason Officiel SVG Actif
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-black bg-emerald-50 text-emerald-900 border border-emerald-200">
+                      <CheckCircle2 size={14} className="text-emerald-600" />
+                      Logo Personnalisé Actif
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {logoSuccessMsg && (
+                <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl text-xs font-bold flex items-center justify-between animate-fade-in">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 size={16} className="text-emerald-600 shrink-0" />
+                    <span>{logoSuccessMsg}</span>
+                  </div>
+                  <button onClick={() => setLogoSuccessMsg(null)} className="text-emerald-600 hover:text-emerald-900">
+                    <X size={14} />
+                  </button>
+                </div>
+              )}
+
+              {/* Main Content Grid: Left Options & Right Live Preview */}
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                {/* Left (7 cols): Controls & Sources */}
+                <div className="lg:col-span-7 space-y-4">
+                  {/* Mode Tabs */}
+                  <div className="flex items-center gap-2 bg-slate-100 p-1.5 rounded-xl border border-slate-200">
+                    <button
+                      type="button"
+                      onClick={() => setLogoMode('upload')}
+                      className={cn(
+                        "flex-1 py-2 px-3 rounded-lg text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2 transition-all",
+                        logoMode === 'upload' 
+                          ? "bg-navy text-gold shadow-sm" 
+                          : "text-slate-600 hover:text-navy hover:bg-slate-200/50"
+                      )}
+                    >
+                      <Upload size={14} />
+                      Téléverser Image
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setLogoMode('presets')}
+                      className={cn(
+                        "flex-1 py-2 px-3 rounded-lg text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2 transition-all",
+                        logoMode === 'presets' 
+                          ? "bg-navy text-gold shadow-sm" 
+                          : "text-slate-600 hover:text-navy hover:bg-slate-200/50"
+                      )}
+                    >
+                      <Shield size={14} />
+                      Préréglages Mairie
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setLogoMode('url')}
+                      className={cn(
+                        "flex-1 py-2 px-3 rounded-lg text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2 transition-all",
+                        logoMode === 'url' 
+                          ? "bg-navy text-gold shadow-sm" 
+                          : "text-slate-600 hover:text-navy hover:bg-slate-200/50"
+                      )}
+                    >
+                      <LinkIcon size={14} />
+                      Lien URL
+                    </button>
+                  </div>
+
+                  {/* Mode 1: Upload */}
+                  {logoMode === 'upload' && (
+                    <div className="space-y-3">
+                      <div
+                        onDragOver={(e) => { e.preventDefault(); setIsDraggingLogo(true); }}
+                        onDragLeave={() => setIsDraggingLogo(false)}
+                        onDrop={(e) => {
+                          e.preventDefault();
+                          setIsDraggingLogo(false);
+                          if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+                            handleLogoFile(e.dataTransfer.files[0]);
+                          }
+                        }}
+                        onClick={() => fileInputRef.current?.click()}
+                        className={cn(
+                          "border-2 border-dashed rounded-2xl p-6 text-center cursor-pointer transition-all flex flex-col items-center justify-center gap-3",
+                          isDraggingLogo 
+                            ? "border-gold bg-gold/10 scale-[1.01]" 
+                            : "border-slate-300 hover:border-gold bg-slate-50/70 hover:bg-slate-50"
+                        )}
+                      >
+                        <input
+                          ref={fileInputRef}
+                          type="file"
+                          accept="image/png,image/jpeg,image/svg+xml,image/webp"
+                          className="hidden"
+                          onChange={(e) => {
+                            if (e.target.files && e.target.files[0]) {
+                              handleLogoFile(e.target.files[0]);
+                            }
+                          }}
+                        />
+                        <div className="w-12 h-12 rounded-full bg-navy/5 flex items-center justify-center text-navy">
+                          <Upload size={24} className="text-navy group-hover:scale-110 transition-transform" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-black text-navy uppercase tracking-wide">
+                            Glissez-déposez votre logo ici ou <span className="text-gold underline">parcourez</span>
+                          </p>
+                          <p className="text-[0.65rem] text-slate-500 font-bold uppercase tracking-wider mt-1">
+                            PNG, SVG, JPG, WEBP • Résolution recommandée : 512x512 ou supérieure
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Mode 2: Presets */}
+                  {logoMode === 'presets' && (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setParamsMap(prev => ({ ...prev, custom_logo: '' }));
+                          setLogoSuccessMsg("Blason officiel sélectionné ! Cliquez sur « Appliquer ce Logo ».");
+                        }}
+                        className={cn(
+                          "p-3 rounded-xl border text-left flex items-center gap-3 transition-all",
+                          !paramsMap.custom_logo
+                            ? "border-gold bg-gold/10 ring-2 ring-gold/40 shadow-sm"
+                            : "border-slate-200 bg-slate-50 hover:bg-white"
+                        )}
+                      >
+                        <div className="w-12 h-12 rounded-lg bg-white p-1 border border-slate-200 flex items-center justify-center shrink-0">
+                          <LogoMairie className="w-10 h-10" src="" />
+                        </div>
+                        <div>
+                          <div className="text-xs font-black text-navy leading-tight">Blason Officiel SVG</div>
+                          <div className="text-[0.65rem] text-slate-500 mt-0.5">Armoiries vectorielles pures de Libreville</div>
+                          {!paramsMap.custom_logo && (
+                            <span className="text-[0.6rem] font-black text-gold uppercase tracking-wider block mt-1">Actif</span>
+                          )}
+                        </div>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setParamsMap(prev => ({ ...prev, custom_logo: '/Logo.mairie.png' }));
+                          setLogoSuccessMsg("Fichier image officiel sélectionné ! Cliquez sur « Appliquer ce Logo ».");
+                        }}
+                        className={cn(
+                          "p-3 rounded-xl border text-left flex items-center gap-3 transition-all",
+                          paramsMap.custom_logo === '/Logo.mairie.png'
+                            ? "border-gold bg-gold/10 ring-2 ring-gold/40 shadow-sm"
+                            : "border-slate-200 bg-slate-50 hover:bg-white"
+                        )}
+                      >
+                        <div className="w-12 h-12 rounded-lg bg-white p-1 border border-slate-200 flex items-center justify-center shrink-0">
+                          <img src="/Logo.mairie.png" alt="Logo.mairie.png" className="w-10 h-10 object-contain" />
+                        </div>
+                        <div>
+                          <div className="text-xs font-black text-navy leading-tight">Image Logo.mairie.png</div>
+                          <div className="text-[0.65rem] text-slate-500 mt-0.5">Fichier PNG fourni par le Cabinet</div>
+                          {paramsMap.custom_logo === '/Logo.mairie.png' && (
+                            <span className="text-[0.6rem] font-black text-gold uppercase tracking-wider block mt-1">Actif</span>
+                          )}
+                        </div>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setParamsMap(prev => ({ ...prev, custom_logo: '/logo.svg' }));
+                          setLogoSuccessMsg("Fichier logo.svg sélectionné ! Cliquez sur « Appliquer ce Logo ».");
+                        }}
+                        className={cn(
+                          "p-3 rounded-xl border text-left flex items-center gap-3 transition-all",
+                          paramsMap.custom_logo === '/logo.svg'
+                            ? "border-gold bg-gold/10 ring-2 ring-gold/40 shadow-sm"
+                            : "border-slate-200 bg-slate-50 hover:bg-white"
+                        )}
+                      >
+                        <div className="w-12 h-12 rounded-lg bg-white p-1 border border-slate-200 flex items-center justify-center shrink-0">
+                          <img src="/logo.svg" alt="logo.svg" className="w-10 h-10 object-contain" />
+                        </div>
+                        <div>
+                          <div className="text-xs font-black text-navy leading-tight">Fichier logo.svg</div>
+                          <div className="text-[0.65rem] text-slate-500 mt-0.5">Asset SVG vectoriel autonome</div>
+                          {paramsMap.custom_logo === '/logo.svg' && (
+                            <span className="text-[0.6rem] font-black text-gold uppercase tracking-wider block mt-1">Actif</span>
+                          )}
+                        </div>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setParamsMap(prev => ({ ...prev, custom_logo: '/logo.png' }));
+                          setLogoSuccessMsg("Fichier logo.png sélectionné ! Cliquez sur « Appliquer ce Logo ».");
+                        }}
+                        className={cn(
+                          "p-3 rounded-xl border text-left flex items-center gap-3 transition-all",
+                          paramsMap.custom_logo === '/logo.png'
+                            ? "border-gold bg-gold/10 ring-2 ring-gold/40 shadow-sm"
+                            : "border-slate-200 bg-slate-50 hover:bg-white"
+                        )}
+                      >
+                        <div className="w-12 h-12 rounded-lg bg-white p-1 border border-slate-200 flex items-center justify-center shrink-0">
+                          <img src="/logo.png" alt="logo.png" className="w-10 h-10 object-contain" />
+                        </div>
+                        <div>
+                          <div className="text-xs font-black text-navy leading-tight">Fichier logo.png</div>
+                          <div className="text-[0.65rem] text-slate-500 mt-0.5">Image raster standard</div>
+                          {paramsMap.custom_logo === '/logo.png' && (
+                            <span className="text-[0.6rem] font-black text-gold uppercase tracking-wider block mt-1">Actif</span>
+                          )}
+                        </div>
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Mode 3: Custom URL */}
+                  {logoMode === 'url' && (
+                    <div className="space-y-3">
+                      <div>
+                        <label className="text-[0.65rem] font-black text-navy uppercase tracking-widest block mb-1">
+                          URL / Chemin de l'image
+                        </label>
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="text"
+                            value={logoInputUrl}
+                            onChange={(e) => setLogoInputUrl(e.target.value)}
+                            placeholder="https://exemple.com/mon-logo.png ou /images/logo.svg"
+                            className="flex-1 bg-slate-50 border border-slate-200 p-2.5 rounded-lg font-medium text-navy text-sm focus:bg-white focus:ring-2 focus:ring-gold"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (!logoInputUrl.trim()) return;
+                              setParamsMap(prev => ({ ...prev, custom_logo: logoInputUrl.trim() }));
+                              setLogoSuccessMsg("URL appliquée ! Cliquez sur « Appliquer ce Logo » pour sauvegarder.");
+                            }}
+                            className="px-4 py-2.5 bg-navy text-gold font-black text-xs uppercase tracking-wider rounded-lg hover:bg-navy/90"
+                          >
+                            Prévisualiser
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Action Buttons for Logo */}
+                  <div className="flex flex-wrap items-center gap-3 pt-2">
+                    <button
+                      type="button"
+                      onClick={() => handleSaveLogoDirect()}
+                      disabled={logoSaving}
+                      className="px-5 py-2.5 bg-navy hover:bg-navy/90 text-gold font-black text-xs uppercase tracking-widest rounded-xl shadow-md flex items-center gap-2 transition-all border border-gold/40"
+                    >
+                      {logoSaving ? <RefreshCw size={14} className="animate-spin" /> : <Check size={14} />}
+                      Appliquer & Enregistrer ce Logo
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={handleRestoreOfficialLogo}
+                      disabled={logoSaving}
+                      className="px-4 py-2.5 bg-white hover:bg-slate-100 text-slate-700 font-bold text-xs uppercase tracking-wider rounded-xl border border-slate-300 flex items-center gap-2 transition-all shadow-sm"
+                    >
+                      <RotateCcw size={14} />
+                      Restaurer le Blason Officiel
+                    </button>
+                  </div>
+                </div>
+
+                {/* Right (5 cols): Live Preview Across Key Contexts */}
+                <div className="lg:col-span-5 bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-4">
+                  <div className="flex items-center justify-between border-b border-slate-200 pb-2">
+                    <span className="text-[0.7rem] font-black text-navy uppercase tracking-widest flex items-center gap-1.5">
+                      <Eye size={14} className="text-gold" />
+                      Aperçu en Conditions Réelles
+                    </span>
+                    <span className="text-[0.6rem] font-bold text-slate-500 uppercase">
+                      Mise à jour en direct
+                    </span>
+                  </div>
+
+                  {/* Context 1: Sidebar preview */}
+                  <div className="bg-[#0B132B] p-4 rounded-xl border border-gold/30 shadow-inner flex items-center gap-3">
+                    <LogoMairie className="w-12 h-12 shrink-0" src={paramsMap.custom_logo} />
+                    <div className="overflow-hidden">
+                      <div className="text-xs font-serif font-black text-gold uppercase tracking-wider truncate">
+                        {paramsMap.app_name || 'DIGICAB • ML'}
+                      </div>
+                      <div className="text-[0.6rem] text-slate-300 font-bold uppercase tracking-widest truncate">
+                        {paramsMap.mairie_name || 'Cabinet du Maire'}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Context 2: Login Badge preview */}
+                  <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center justify-center">
+                    <div className="w-16 h-16 bg-navy rounded-full border-2 border-gold flex items-center justify-center shadow-md">
+                      <LogoMairie className="w-10 h-10" src={paramsMap.custom_logo} />
+                    </div>
+                    <div className="ml-4">
+                      <div className="text-[0.65rem] font-black text-navy uppercase tracking-wider">Badge de Connexion</div>
+                      <div className="text-[0.6rem] text-slate-500">Affiché sur l'écran d'accès sécurisé</div>
+                    </div>
+                  </div>
+
+                  {/* Context 3: Document header preview */}
+                  <div className="bg-white p-3.5 rounded-xl border border-slate-200 text-center space-y-2">
+                    <div className="flex justify-center">
+                      <LogoMairie className="w-14 h-14" src={paramsMap.custom_logo} />
+                    </div>
+                    <div className="text-[0.65rem] font-serif font-black text-navy uppercase tracking-widest">
+                      RÉPUBLIQUE GABONAISE • VILLE DE LIBREVILLE
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Deux colonnes existantes : Titres & Textes Institutionnels, et Écran d'Accueil & Thème */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-4">
               <div className="flex items-center gap-3 border-b border-slate-100 pb-3">
                 <div className="p-2 bg-navy text-gold rounded-lg"><Layout size={20} /></div>
@@ -560,6 +979,7 @@ export default function AdministrationView({ currentUser }: { currentUser: User 
               </div>
             </div>
           </div>
+        </div>
         )}
 
         {/* 2. MODULES & FEATURE FLAGS */}

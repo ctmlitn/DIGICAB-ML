@@ -128,7 +128,7 @@ export default function DashboardView({ settings }: { settings?: any }) {
     <div className="p-6 space-y-8 relative">
       {/* Background Watermark */}
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.03]">
-         <LogoMairie className="w-[800px] h-[800px] grayscale" />
+         <LogoMairie className="w-[800px] h-[800px] grayscale" src={settings?.custom_logo} />
       </div>
 
       <div className="flex flex-col md:flex-row gap-4 items-center justify-between relative z-10">

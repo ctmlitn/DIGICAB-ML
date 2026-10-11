@@ -1,20 +1,76 @@
 import { motion } from 'motion/react';
+import { useState, useEffect } from 'react';
 
-export default function LogoMairie({ className = "w-16 h-16" }: { className?: string }) {
+interface LogoMairieProps {
+  className?: string;
+  src?: string;
+  alt?: string;
+  badge?: boolean;
+}
+
+export default function LogoMairie({ 
+  className = "w-16 h-16", 
+  src, 
+  alt = "Armoiries Officielles de la Mairie de Libreville",
+  badge
+}: LogoMairieProps) {
+  const [logoSrc, setLogoSrc] = useState<string | null>(() => {
+    if (src !== undefined) return src || null;
+    return typeof window !== 'undefined' ? (localStorage.getItem('digicab_custom_logo') || null) : null;
+  });
+  const [imgError, setImgError] = useState(false);
+
+  useEffect(() => {
+    if (src !== undefined) {
+      setLogoSrc(src || null);
+      setImgError(false);
+    }
+  }, [src]);
+
+  useEffect(() => {
+    const handleUpdate = () => {
+      if (src === undefined) {
+        const stored = localStorage.getItem('digicab_custom_logo');
+        setLogoSrc(stored || null);
+        setImgError(false);
+      }
+    };
+
+    window.addEventListener('settings-updated', handleUpdate);
+    window.addEventListener('storage', handleUpdate);
+    return () => {
+      window.removeEventListener('settings-updated', handleUpdate);
+      window.removeEventListener('storage', handleUpdate);
+    };
+  }, [src]);
+
+  const isWatermark = className.includes('grayscale') || badge === false;
+  const containerClasses = isWatermark
+    ? `flex items-center justify-center overflow-hidden ${className}`
+    : `flex items-center justify-center p-1 rounded-2xl bg-white shadow-xl border border-gold/40 ring-2 ring-navy/10 overflow-hidden ${className}`;
+
   return (
     <motion.div 
       initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: 1, scale: 1 }}
-      className={`flex items-center justify-center p-1 rounded-2xl bg-white shadow-xl border border-gold/40 ring-2 ring-navy/10 overflow-hidden ${className}`}
-      title="Armoiries Officielles de la Mairie de Libreville"
+      className={containerClasses}
+      title={alt}
     >
-      {/* Official Heraldic Coat of Arms of Libreville (Permanent, Vector-Sharp at all scales) */}
-      <svg 
-        viewBox="0 0 300 240" 
-        className="w-full h-full object-contain filter drop-shadow-sm select-none" 
-        fill="none" 
-        xmlns="http://www.w3.org/2000/svg"
-      >
+      {logoSrc && !imgError ? (
+        <img 
+          src={logoSrc} 
+          alt={alt} 
+          onError={() => setImgError(true)}
+          className="w-full h-full object-contain filter drop-shadow-sm select-none"
+        />
+      ) : (
+        /* Official Heraldic Coat of Arms of Libreville (Permanent, Vector-Sharp at all scales) */
+        <svg 
+          viewBox="0 0 300 240" 
+          className="w-full h-full object-contain filter drop-shadow-sm select-none" 
+          fill="none" 
+          xmlns="http://www.w3.org/2000/svg"
+        >
         <defs>
           <linearGradient id="goldLions" x1="0%" y1="0%" x2="100%" y2="100%">
             <stop offset="0%" stopColor="#F59E0B" />
@@ -133,6 +189,7 @@ export default function LogoMairie({ className = "w-16 h-16" }: { className?: st
           <text x="0" y="8" fontFamily="'Times New Roman', serif" fontSize="11" fontWeight="900" letterSpacing="3" textAnchor="middle" fill="#0F172A">LIBREVILLE</text>
         </g>
       </svg>
+      )}
     </motion.div>
   );
 }

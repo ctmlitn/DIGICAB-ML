@@ -33,6 +33,13 @@ export default function App() {
       
       if (sMap.app_name) setAppName(sMap.app_name);
       if (sMap.mairie_name) setMairieName(sMap.mairie_name);
+      if (sMap.custom_logo !== undefined) {
+        if (sMap.custom_logo) {
+          localStorage.setItem('digicab_custom_logo', sMap.custom_logo);
+        } else {
+          localStorage.removeItem('digicab_custom_logo');
+        }
+      }
     } catch (error) {
       console.error("Failed to load settings", error);
     }
@@ -145,7 +152,7 @@ export default function App() {
            className="relative flex flex-col items-center justify-center text-center px-4"
         >
           {/* Logo of the Mairie - Much larger as requested */}
-          <LogoMairie className="w-64 h-64 md:w-80 md:h-80 shadow-[0_0_100px_rgba(212,175,55,0.2)]" />
+          <LogoMairie className="w-64 h-64 md:w-80 md:h-80 shadow-[0_0_100px_rgba(212,175,55,0.2)]" src={settings.custom_logo} />
           
           <motion.div 
             initial={{ opacity: 0, y: 20 }}

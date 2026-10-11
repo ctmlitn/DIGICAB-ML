@@ -63,7 +63,8 @@ const io = new Server(server, { cors: { origin: "*" } });
 const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
 const upload = multer({ limits: { fileSize: 200 * 1024 * 1024 } }); // 200MB limit
 
-app.use(express.json());
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 // Initialize Database Schema - ALL TABLES FIRST
 console.log("Création des tables...");
@@ -758,6 +759,65 @@ app.get("/api/parametres", (req, res) => {
   res.json(params);
 });
 
+// Logo retrieval route
+app.get("/api/parametres/logo", (req, res) => {
+  try {
+    const row = db.prepare("SELECT value FROM parametres WHERE key = 'custom_logo'").get() as { value: string } | undefined;
+    if (row && row.value && row.value.trim() !== '') {
+      const val = row.value.trim();
+      if (val.startsWith("data:")) {
+        const matches = val.match(/^data:([A-Za-z0-9\-+\/]+);base64,(.+)$/);
+        if (matches) {
+          const contentType = matches[1];
+          const buffer = Buffer.from(matches[2], 'base64');
+          res.setHeader('Content-Type', contentType);
+          res.setHeader('Cache-Control', 'public, max-age=3600');
+          return res.send(buffer);
+        }
+      } else if (val.startsWith("/")) {
+        const localPath = path.join(process.cwd(), 'public', val.replace(/^\//, ''));
+        if (fs.existsSync(localPath)) {
+          return res.sendFile(localPath);
+        }
+      }
+    }
+    const defaultSvg = path.join(process.cwd(), 'public', 'logo.svg');
+    if (fs.existsSync(defaultSvg)) {
+      res.setHeader('Content-Type', 'image/svg+xml');
+      return res.sendFile(defaultSvg);
+    }
+    const defaultPng = path.join(process.cwd(), 'public', 'Logo.mairie.png');
+    if (fs.existsSync(defaultPng)) {
+      return res.sendFile(defaultPng);
+    }
+    res.status(404).send("Logo not found");
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Logo upload route
+app.post("/api/parametres/upload-logo", upload.single('logo'), (req, res) => {
+  try {
+    let logoValue = '';
+    if (req.file) {
+      const mime = req.file.mimetype || 'image/png';
+      const base64 = req.file.buffer.toString('base64');
+      logoValue = `data:${mime};base64,${base64}`;
+    } else if (req.body.logoUrl) {
+      logoValue = req.body.logoUrl;
+    } else {
+      return res.status(400).json({ error: "Aucun fichier ou URL fourni" });
+    }
+
+    db.prepare("INSERT OR REPLACE INTO parametres (key, value) VALUES ('custom_logo', ?)").run(logoValue);
+    cachedSettings = null;
+    res.json({ success: true, custom_logo: logoValue });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.put("/api/parametres/:key", (req, res) => {
   const { key } = req.params;
   const { value } = req.body;
@@ -796,6 +856,7 @@ app.post("/api/parametres/reset", (req, res) => {
     const defaults: Record<string, string> = {
       app_name: 'DIGICAB • ML',
       mairie_name: 'Mairie de Libreville - République Gabonaise',
+      custom_logo: '',
       dash_subtitle: 'Tableau de Bord Stratégique',
       port_subtitle: 'Pilotage Stratégique / Cabinet du Maire',
       sync_label: 'Synchronisation de la Gouvernance',

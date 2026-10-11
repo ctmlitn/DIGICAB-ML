@@ -18,6 +18,13 @@ export default function Login({ onLogin }: LoginProps) {
 
   useEffect(() => {
     api.getUsers().then(setUsers).catch(console.error);
+    api.getParameters().then(params => {
+      const logo = params.find(p => p.key === 'custom_logo')?.value;
+      if (logo) {
+        localStorage.setItem('digicab_custom_logo', logo);
+        window.dispatchEvent(new CustomEvent('settings-updated'));
+      }
+    }).catch(() => {});
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {

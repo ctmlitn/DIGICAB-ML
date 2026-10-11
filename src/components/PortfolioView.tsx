@@ -124,7 +124,7 @@ export default function PortfolioView({ settings }: { settings?: any }) {
     <div className="space-y-6 p-6 relative min-h-screen bg-[#e9f1f7]">
       {/* Background Watermark for Executive Feel */}
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.02] overflow-hidden">
-         <LogoMairie className="w-[1200px] h-[1200px] grayscale" />
+         <LogoMairie className="w-[1200px] h-[1200px] grayscale" src={settings?.custom_logo} />
       </div>
 
       {/* Header and Add Button */}

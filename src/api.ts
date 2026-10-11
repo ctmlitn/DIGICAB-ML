@@ -114,6 +114,22 @@ export const api = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ parameters })
     }).then(handleResponse),
+  uploadLogo: async (data: FormData | { logoUrl: string }): Promise<{ success: boolean; custom_logo: string }> => {
+    if (data instanceof FormData) {
+      const res = await fetch(`${API_BASE}/parametres/upload-logo`, {
+        method: 'POST',
+        body: data
+      });
+      return handleResponse(res);
+    } else {
+      const res = await fetch(`${API_BASE}/parametres/upload-logo`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      return handleResponse(res);
+    }
+  },
   resetParameters: () =>
     fetch(`${API_BASE}/parametres/reset`, {
       method: 'POST',

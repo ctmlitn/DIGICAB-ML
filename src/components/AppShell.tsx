@@ -70,7 +70,7 @@ export default function AppShell({ user, onLogout, activeTab, setActiveTab, chil
         style={{ borderRight: isSidebarOpen ? '2px solid var(--color-gold)' : 'none' }}
       >
         <div className="p-6 border-b border-white/10 flex flex-col items-center gap-3">
-          <LogoMairie className={isSidebarOpen ? "w-16 h-16" : "w-10 h-10"} />
+          <LogoMairie className={isSidebarOpen ? "w-16 h-16" : "w-10 h-10"} src={settings?.custom_logo} />
           {isSidebarOpen && (
             <motion.div 
               initial={{ opacity: 0 }} 
