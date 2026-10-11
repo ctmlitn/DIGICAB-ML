@@ -46,6 +46,7 @@ export default function App() {
   };
 
   useEffect(() => {
+    document.title = 'DIGICAB-ML';
     loadSettings().then(() => {
       const savedUser = localStorage.getItem('digicab_user');
       if (savedUser) {

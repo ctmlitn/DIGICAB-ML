@@ -6,7 +6,16 @@ coverage/
 *.log
 .env*
 !.env.example
+
+# Base de données SQLite & Sauvegardes (Ne JAMAIS commiter pour protéger les données de production)
+database.db
+database.db-shm
+database.db-wal
 database.db*
+*.db
 *.sqlite
 *.sqlite3
+data/
+backups/
+uploads/
 

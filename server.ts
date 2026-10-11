@@ -49,8 +49,17 @@ function decrypt(text: string | null | undefined): string | null {
 }
 
 console.log("Initialisation de la base de données...");
-const dbPath = process.env.DATABASE_PATH || "database.db";
+const dbPath = process.env.DATABASE_PATH || (fs.existsSync(path.join(process.cwd(), "data", "database.db")) ? path.join(process.cwd(), "data", "database.db") : "database.db");
+const dbDir = path.dirname(dbPath);
+if (dbDir && dbDir !== "." && !fs.existsSync(dbDir)) {
+  fs.mkdirSync(dbDir, { recursive: true });
+}
 const db = new Database(dbPath);
+try {
+  db.pragma('journal_mode = WAL');
+} catch (e) {
+  // Ignore pragma error if in-memory or unsupported
+}
 const app = express();
 
 // Health check route - Early to verify server is up
